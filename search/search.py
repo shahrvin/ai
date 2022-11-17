@@ -17,9 +17,11 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+from calendar import prmonth
 from itertools import count
 from os import stat
 import queue
+from webbrowser import Elinks
 import util
 
 class SearchProblem:
@@ -126,7 +128,7 @@ def breadthFirstSearch(problem: SearchProblem):
     
     while not problem.isGoalState(state):
         children = problem.getSuccessors(state)
-        print(problem.isGoalState(state))
+        # print(problem.isGoalState(state))
         for node in children:
             state , action , cost = node
             # if problem.isGoalState(state):
@@ -146,6 +148,32 @@ def breadthFirstSearch(problem: SearchProblem):
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
+    priorityq = util.PriorityQueue()
+    visited = []
+    
+    start = problem.getStartState()
+    priorityq.push((start,[],0),0)
+    (state,action , costq)  = priorityq.pop()
+    visited.append((state,costq))
+    # print(problem.getCostOfActions(['South','West']))
+    while not problem.isGoalState(state):
+        children = problem.getSuccessors(state)
+        for child in children:
+            visitedbool = False
+            state , dire , cost = child
+            total_cost = cost + costq
+            for (visitedstate , visitedcost) in visited:
+                if (state == visitedstate) and total_cost >= visitedcost:
+                    visitedbool = True
+                    break
+                
+            if not visitedbool:
+                priorityq.push((state,action+[dire],total_cost), total_cost)
+                visited.append((state, total_cost))
+        (state,action , costq)  = priorityq.pop()
+    return action
+
+        
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -158,6 +186,30 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
+    priorityq = util.PriorityQueue()
+    visited = []
+    
+    start = problem.getStartState()
+    priorityq.push((start,[],0),heuristic(problem.getStartState(),problem))
+    (state,action , costq)  = priorityq.pop()
+    visited.append((state,costq+heuristic(problem.getStartState(),problem)))
+    while not problem.isGoalState(state):
+        children = problem.getSuccessors(state)
+        for child in children:
+            visitedbool = False
+            state , dire , cost = child
+            total_cost = cost + costq
+            for (visitedstate , visitedcost) in visited:
+                if (state == visitedstate) and total_cost >= visitedcost:
+                    visitedbool = True
+                    break
+                
+            if not visitedbool:
+                print(heuristic(state,problem),'ine ne on')
+                priorityq.push((state,action+[dire],total_cost), total_cost+heuristic(state,problem))
+                visited.append((state, total_cost))
+        (state,action , costq)  = priorityq.pop()
+    return action
     util.raiseNotDefined()
 
 
